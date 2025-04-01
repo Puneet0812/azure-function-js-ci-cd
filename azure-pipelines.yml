@@ -1,0 +1,46 @@
+trigger:
+- master
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        npm install
+      displayName: 'Install Dependencies'
+
+- stage: Test
+  displayName: 'Test Stage'
+  dependsOn: Build
+  jobs:
+  - job: TestJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        echo "No tests implemented. Pretend we run npm test here."
+      displayName: 'Run Tests'
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Test
+  jobs:
+  - job: DeployJob
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureFunctionApp@1
+      inputs:
+        azureSubscription: 'PuneetAzureConnection'      #  my actual Azure DevOps connection
+        appType: functionAppLinux
+        appName: 'puneet-func-001'                      #  my actual Function App name
+        package: '$(System.DefaultWorkingDirectory)/myHttpFuncApp'
